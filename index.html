@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عرض السجل الأكاديمي</title>
+
+<style>
+:root {
+    --bg: #f4f1ea;
+    --panel: #ffffff;
+    --ink: #1f2421;
+    --muted: #6b6f6c;
+    --accent: #b5532c;
+    --border: #e3ded2;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Tahoma, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 60px;
+}
+
+.logo {
+    max-width: 180px;
+    max-height: 100px;
+    object-fit: contain;
+    margin-bottom: 24px;
+}
+
+.panel {
+    width: 100%;
+    max-width: 720px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 0 0 20px;
+    text-align: center;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+}
+
+input[type="text"]:focus {
+    border-color: var(--accent);
+}
+
+button {
+    padding: 10px 18px;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.error {
+    color: #c0392b;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+    text-align: center;
+}
+
+.viewer-wrap {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 20px;
+    display: none;
+}
+
+.viewer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.filename-label {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.viewer-wrap iframe {
+    width: 100%;
+    height: 75vh;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+}
+</style>
+</head>
+
+<body>
+
+<img class="logo" src="logo.jpg" alt="Logo">
+
+<div class="panel">
+    <h1>رقم الهوية لعرض السجل الأكاديمي</h1>
+
+    <div class="row">
+        <input
+            type="text"
+            id="pdfName"
+            placeholder="أدخل رقم الهوية"
+            autocomplete="off"
+        >
+
+        <button onclick="loadPdf()">عرض</button>
+    </div>
+
+    <div class="error" id="errorMsg">
+        لم يتم العثور على السجل الأكاديمي.
+    </div>
+</div>
+
+<div class="viewer-wrap" id="viewerWrap">
+
+    <div class="viewer-header">
+        <button onclick="printPdf()">طباعة</button>
+        <div class="filename-label" id="filenameLabel"></div>
+    </div>
+
+    <iframe id="pdfFrame"></iframe>
+
+</div>
+
+<script>
+const FOLDER = "files/";
+
+function loadPdf() {
+    const input = document.getElementById("pdfName");
+    const errorMsg = document.getElementById("errorMsg");
+    const viewerWrap = document.getElementById("viewerWrap");
+    const pdfFrame = document.getElementById("pdfFrame");
+    const filenameLabel = document.getElementById("filenameLabel");
+
+    const id = input.value.trim();
+
+    if (!id) return;
+
+    const filename = id + ".pdf";
+    const path = FOLDER + filename;
+
+    fetch(path, { method: "HEAD" })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error();
+            }
+
+            errorMsg.style.display = "none";
+            filenameLabel.textContent = filename;
+            pdfFrame.src = path;
+            viewerWrap.style.display = "block";
+        })
+        .catch(() => {
+            viewerWrap.style.display = "none";
+            errorMsg.style.display = "block";
+        });
+}
+
+function printPdf() {
+    const pdfFrame = document.getElementById("pdfFrame");
+
+    if (!pdfFrame.src) {
+        alert("قم بعرض السجل أولاً");
+        return;
+    }
+
+    const printWindow = window.open(pdfFrame.src, "_blank");
+
+    if (printWindow) {
+        printWindow.onload = function () {
+            printWindow.focus();
+            printWindow.print();
+        };
+    }
+}
+
+document.getElementById("pdfName").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        loadPdf();
+    }
+});
+</script>
+
+</body>
+</html>
